@@ -1,0 +1,16 @@
+package architecture.android.androidarchitecture.forecastListScreen
+
+import architecture.android.androidarchitecture.data.model.Forecast
+
+
+interface ForecastListContract {
+    interface View {
+        fun showForecastList(forecastList: List<Forecast>)
+        fun goToForecastDetail(forecast: Forecast)
+    }
+
+    interface UserInteraction {
+        fun onLoadForecast()
+        fun onForecastClick(forecast: Forecast)
+    }
+}
