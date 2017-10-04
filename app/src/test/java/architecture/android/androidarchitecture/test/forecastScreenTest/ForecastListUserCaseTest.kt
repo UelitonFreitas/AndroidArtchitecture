@@ -1,51 +1,41 @@
 package architecture.android.androidarchitecture.test.forecastScreenTest
 
+import architecture.android.androidarchitecture.data.api.ForecastApi
 import architecture.android.androidarchitecture.data.model.Forecast
 import architecture.android.androidarchitecture.forecastListScreen.ForecastListContract
-import architecture.android.androidarchitecture.forecastListScreen.ForecastListPresenter
+import architecture.android.androidarchitecture.forecastListScreen.ForecastListUserCase
+import com.nhaarman.mockito_kotlin.capture
 import com.nhaarman.mockito_kotlin.eq
 import com.nhaarman.mockito_kotlin.verify
 import org.junit.Before
-
 import org.junit.Test
+import org.mockito.ArgumentCaptor
+import org.mockito.Captor
 import org.mockito.Mock
-import org.mockito.Mockito.`when`
 import org.mockito.MockitoAnnotations
 
-class ForecastListPresenterTest {
-
+class ForecastListUserCaseTest {
     @Mock
-    lateinit var view: ForecastListContract.View
-
-    @Mock
-    lateinit var userCaseInput: ForecastListContract.UserCaseInput
+    lateinit var forecastApi: ForecastApi
 
     @Mock
     lateinit var userCaseOutput: ForecastListContract.UserCaseOutput
 
-    lateinit var forecastListPresenter: ForecastListPresenter
+    @Captor
+    lateinit var forecastApiCaptor: ArgumentCaptor<ForecastApi.CallBack<List<Forecast>>>
+
+    lateinit var forecastListUserCase: ForecastListUserCase
 
     @Before
     fun setUp() {
         MockitoAnnotations.initMocks(this)
 
-        forecastListPresenter = ForecastListPresenter(view, userCaseInput)
+        forecastListUserCase = ForecastListUserCase(forecastApi)
+        forecastListUserCase.userCaseOutput = userCaseOutput
     }
 
     @Test
     fun shouldLoadForecastList(){
-        val zipCode = "zipcoDE"
-
-        `when`(view.getZipCode()).thenReturn(zipCode)
-
-        forecastListPresenter.onLoadForecast()
-
-        verify(userCaseInput).loadForecastList(eq(zipCode))
-    }
-
-
-    @Test
-    fun shouldShowForecastList(){
         val expectedForecast = listOf(
                 Forecast("03/10/2017", "Sunny day", 30, 27, "u1"),
                 Forecast("04/10/2017", "Sunny day", 31, 28, "u2"),
@@ -53,8 +43,13 @@ class ForecastListPresenterTest {
                 Forecast("06/10/2017", "Sunny day", 33, 30, "u4")
         )
 
-        forecastListPresenter.onForecastListLoaded(expectedForecast)
+        val zipCode = "aCode"
 
-        verify(view).showForecastList(expectedForecast)
+        forecastListUserCase.loadForecastList(zipCode)
+
+        verify(forecastApi).getForecasts(eq(zipCode), capture(forecastApiCaptor))
+        forecastApiCaptor.value.onSucess(expectedForecast)
+
+        verify(userCaseOutput).onForecastListLoaded(eq(expectedForecast))
     }
 }

@@ -11,30 +11,38 @@ import kotlinx.android.synthetic.main.activity_main.*
 import org.jetbrains.anko.toast
 
 class ForecastListActivity : AppCompatActivity(), ForecastListContract.View {
-    lateinit var userInteraction: ForecastListContract.UserInteraction
+    lateinit var forecastListPresenter: ForecastListPresenter
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        userInteraction = ForecastListPresenter(this, ForecastApiImpl())
+        val forecastListUserCase = ForecastListUserCase(ForecastApiImpl())
+
+        forecastListPresenter = ForecastListPresenter(this, forecastListUserCase)
+        forecastListUserCase.userCaseOutput = forecastListPresenter
+
         forecastList.layoutManager = LinearLayoutManager(this)
     }
 
     override fun onResume() {
         super.onResume()
-        userInteraction.onLoadForecast()
+        forecastListPresenter.onLoadForecast()
     }
 
     override fun showForecastList(forecasts: List<Forecast>) {
         val adapter = ForecastListAdapter(forecasts) {
-            userInteraction.onForecastClick(it)
+            forecastListPresenter.onForecastClick(it)
         }
         forecastList.adapter = adapter
     }
 
     override fun goToForecastDetail(forecast: Forecast) {
         toast(forecast.date)
+    }
+
+    override fun getZipCode(): String {
+        return "94043" //EditText
     }
 }
 
